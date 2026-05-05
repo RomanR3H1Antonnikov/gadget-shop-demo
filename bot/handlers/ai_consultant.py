@@ -22,6 +22,10 @@ class AIStates(StatesGroup):
     waiting_query = State()
 
 
+# Тексты кнопок главного меню — не должны попадать в AI-обработчик
+_MENU_TEXTS = frozenset({"Каталог 📦", "Подобрать товар 🤖", "Мои заказы 📋", "О магазине ℹ️"})
+
+
 def recommended_products_keyboard(products: list) -> InlineKeyboardMarkup | None:
     """Инлайн-кнопки для товаров, упомянутых в ответе GPT."""
     if not products:
@@ -55,7 +59,7 @@ async def start_ai_consultant(message: Message, state: FSMContext):
 
 # ─── Обработка запроса пользователя ──────────────────────────────────────────
 
-@router.message(AIStates.waiting_query, F.text)
+@router.message(AIStates.waiting_query, F.text, ~F.text.in_(_MENU_TEXTS))
 async def process_ai_query(message: Message, state: FSMContext, bot: Bot):
     """Отправляет запрос в GPT и показывает рекомендацию с кнопками товаров."""
     await state.clear()

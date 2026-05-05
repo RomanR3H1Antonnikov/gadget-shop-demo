@@ -35,12 +35,14 @@ async def main():
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    # Регистрируем роутеры в порядке приоритета
+    # Регистрируем роутеры в порядке приоритета.
+    # my_orders должен быть ДО ai_consultant: иначе «Мои заказы 📋» в AIStates.waiting_query
+    # перехватывается process_ai_query (фильтр F.text без ограничения на текст).
     dp.include_router(catalog.router)
     dp.include_router(orders.router)
-    dp.include_router(ai_consultant.router)
-    dp.include_router(admin.router)
     dp.include_router(my_orders.router)
+    dp.include_router(admin.router)
+    dp.include_router(ai_consultant.router)
     dp.include_router(fallback.router)  # всегда последним
 
     logger.info("Бот запущен.")
