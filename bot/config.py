@@ -7,8 +7,9 @@ config.py
 
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 
-load_dotenv()
+load_dotenv(Path(__file__).parent / ".env")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_CHAT_ID = int(os.environ["ADMIN_CHAT_ID"])
