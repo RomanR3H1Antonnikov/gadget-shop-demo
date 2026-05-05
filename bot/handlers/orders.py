@@ -181,7 +181,7 @@ async def process_delivery(message: Message, state: FSMContext, bot: Bot):
 
         # ── Подтверждение пользователю ──
         await message.answer(
-            f"✅ <b>Заявка #{order_id} принята!</b>\n\n"
+            "✅ <b>Заявка принята!</b>\n\n"
             f"📦 Товар: {data['product_name']}\n"
             f"👤 Имя: {data['customer_name']}\n"
             f"📞 Телефон: {data['phone']}\n"
@@ -219,6 +219,9 @@ async def process_delivery(message: Message, state: FSMContext, bot: Bot):
 @router.callback_query(F.data.startswith("confirm_order_"))
 async def confirm_order(callback: CallbackQuery, bot: Bot):
     """Администратор подтверждает заказ — статус → confirmed, уведомляет клиента."""
+    if callback.from_user.id != ADMIN_CHAT_ID:
+        await callback.answer()
+        return
     order_id = int(callback.data.split("_")[-1])
 
     try:
@@ -233,7 +236,7 @@ async def confirm_order(callback: CallbackQuery, bot: Bot):
         await bot.send_message(
             chat_id=order["user_id"],
             text=(
-                f"✅ <b>Заказ #{order_id} подтверждён!</b>\n\n"
+                "✅ <b>Ваш заказ подтверждён!</b>\n\n"
                 f"📦 {order['product_name']}\n\n"
                 "Менеджер свяжется с вами для уточнения деталей."
             ),
@@ -255,6 +258,9 @@ async def confirm_order(callback: CallbackQuery, bot: Bot):
 @router.callback_query(F.data.startswith("cancel_order_"))
 async def reject_order(callback: CallbackQuery, bot: Bot):
     """Администратор отклоняет заказ — статус → cancelled, уведомляет клиента."""
+    if callback.from_user.id != ADMIN_CHAT_ID:
+        await callback.answer()
+        return
     order_id = int(callback.data.split("_")[-1])
 
     try:
@@ -268,7 +274,7 @@ async def reject_order(callback: CallbackQuery, bot: Bot):
         await bot.send_message(
             chat_id=order["user_id"],
             text=(
-                f"❌ <b>Заказ #{order_id} отклонён.</b>\n\n"
+                "❌ <b>Ваш заказ отклонён.</b>\n\n"
                 "Если у вас есть вопросы — напишите нам через раздел «О магазине»."
             ),
             parse_mode="HTML",

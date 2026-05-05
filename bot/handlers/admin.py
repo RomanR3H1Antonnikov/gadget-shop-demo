@@ -156,6 +156,10 @@ async def cb_set_order_status(callback: CallbackQuery, bot: Bot):
     order_id = int(parts[3])
     new_status = parts[4]
 
+    if new_status not in {"new", "confirmed", "done", "cancelled"}:
+        await callback.answer()
+        return
+
     try:
         order = await crud.get_order(order_id)
         if not order:
@@ -167,9 +171,9 @@ async def cb_set_order_status(callback: CallbackQuery, bot: Bot):
         # Уведомление покупателю
         status_label = STATUS_LABEL.get(new_status, new_status)
         user_messages = {
-            "confirmed": f"✅ Ваш заказ <b>#{order_id}</b> подтверждён! Менеджер свяжется с вами.",
-            "done":      f"📦 Ваш заказ <b>#{order_id}</b> выполнен! Спасибо за покупку.",
-            "cancelled": f"❌ Ваш заказ <b>#{order_id}</b> отменён. Обратитесь к менеджеру, если это ошибка.",
+            "confirmed": "✅ Ваш заказ подтверждён! Менеджер свяжется с вами.",
+            "done":      "📦 Ваш заказ выполнен! Спасибо за покупку.",
+            "cancelled": "❌ Ваш заказ отменён. Обратитесь к менеджеру, если это ошибка.",
         }
         if new_status in user_messages:
             try:
@@ -324,13 +328,7 @@ async def process_edit_price(message: Message, state: FSMContext):
     new_price = int(raw)
 
     try:
-        async with __import__("aiosqlite").connect(__import__("bot.config", fromlist=["DB_PATH"]).DB_PATH) as db:
-            await db.execute(
-                "UPDATE products SET price = ? WHERE id = ?",
-                (new_price, data["product_id"])
-            )
-            await db.commit()
-
+        await crud.update_product_price(data["product_id"], new_price)
         product = await crud.get_product(data["product_id"])
         await message.answer(
             f"✅ Цена обновлена: <b>{product['name']}</b> — "

@@ -105,6 +105,15 @@ async def get_all_products_admin(offset: int = 0, limit: int = 10) -> list[dict]
             return [dict(r) for r in rows]
 
 
+async def update_product_price(product_id: int, price: int):
+    """Обновляет цену товара."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "UPDATE products SET price = ? WHERE id = ?", (price, product_id)
+        )
+        await db.commit()
+
+
 async def toggle_product_visibility(product_id: int):
     """Переключает видимость товара (is_hidden)."""
     async with aiosqlite.connect(DB_PATH) as db:
